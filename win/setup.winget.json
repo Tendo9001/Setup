@@ -30,6 +30,9 @@
         },
         {
           "PackageIdentifier": "GitHub.cli"
+        },
+        {
+          "PackageIdentifier": "Google.Antigravity"
         }
       ],
       "SourceDetails": {
