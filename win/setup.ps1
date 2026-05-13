@@ -81,28 +81,29 @@ if (-not (Test-Path $wingetJsonPath)) {
     exit 1
 }
 
-# Skip Docker if reboot is needed
-$finalWingetPath = $wingetJsonPath
-if ($script:RebootRequired) {
-    Write-Host "Docker will be skipped until after reboot" -ForegroundColor Yellow
-    $wingetContent = Get-Content $wingetJsonPath -Raw | ConvertFrom-Json
-    foreach ($source in $wingetContent.Sources) {
-        $source.Packages = @($source.Packages | Where-Object { $_.PackageIdentifier -notlike "*Docker*" })
+$wingetJson = Get-Content $wingetJsonPath -Raw | ConvertFrom-Json
+$packages   = $wingetJson.Sources | ForEach-Object { $_.Packages } | Select-Object -ExpandProperty PackageIdentifier
+
+$failed = @()
+foreach ($id in $packages) {
+    if ($script:RebootRequired -and $id -like "*Docker*") {
+        Write-Host "   Skipped (reboot first): $id" -ForegroundColor Yellow
+        continue
     }
-    $tempPath = Join-Path $env:TEMP "setup.winget.temp.json"
-    $wingetContent | ConvertTo-Json -Depth 10 | Set-Content $tempPath -Encoding UTF8
-    $finalWingetPath = $tempPath
+    Write-Host "   Installing: $id" -ForegroundColor Gray
+    winget install --id $id -e --accept-package-agreements --accept-source-agreements --ignore-versions *>&1 | Out-Null
+    if ($LASTEXITCODE -eq 0 -or $LASTEXITCODE -eq -1978335189) {
+        Write-Host "   OK: $id" -ForegroundColor Green
+    } else {
+        Write-Host "   WARNING: $id not found or failed, skipping" -ForegroundColor Yellow
+        $failed += $id
+    }
 }
 
-try {
-    winget import -i $finalWingetPath --accept-package-agreements --accept-source-agreements --ignore-versions
-    Write-Host "Packages installed" -ForegroundColor Green
-} catch {
-    Write-Host "WARNING: Some packages may have failed, check output above" -ForegroundColor Yellow
-} finally {
-    if ($finalWingetPath -ne $wingetJsonPath -and (Test-Path $finalWingetPath)) {
-        Remove-Item $finalWingetPath -Force -ErrorAction SilentlyContinue
-    }
+if ($failed.Count -gt 0) {
+    Write-Host "Skipped packages: $($failed -join ', ')" -ForegroundColor Yellow
+} else {
+    Write-Host "All packages installed" -ForegroundColor Green
 }
 
 # ============================================
