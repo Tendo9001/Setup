@@ -30,7 +30,7 @@
         },
         {
           "PackageIdentifier": "GitHub.cli"
-        },
+        }
       ],
       "SourceDetails": {
         "Argument": "https://cdn.winget.microsoft.com/cache",
