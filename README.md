@@ -81,6 +81,7 @@ After restarting, run this script again to install Docker Desktop.
 | Google Chrome | 浏览器 |
 | 7-Zip | 压缩/解压工具 |
 | GitHub CLI | 在终端操作 GitHub |
+| Google Antigravity | Google AI 开发环境 |
 | Claude Code | AI 编程助手 |
 
 VS Code 扩展：

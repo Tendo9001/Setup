@@ -72,6 +72,11 @@ try {
 # ============================================
 
 Write-Host ""
+Write-Host "Updating winget sources..." -ForegroundColor Yellow
+winget source update *>&1 | Out-Null
+Write-Host "Sources updated" -ForegroundColor Green
+
+Write-Host ""
 Write-Host "Installing packages..." -ForegroundColor Yellow
 
 $wingetJsonPath = Join-Path $ScriptDir "setup.winget.json"
